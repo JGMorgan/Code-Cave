@@ -1,14 +1,10 @@
-/*
-// Examples Stylesheet
-// -------------------
-*/
-
 body {
 	font-family: Helvetica Neue, Helvetica, Arial, sans-serif;
 	font-size: 14px;
 	color: #333;
 	margin: 0;
 	padding: 0;
+    background-color: black;
 }
 
 a {
@@ -18,21 +14,6 @@ a {
 
 a:hover {
 	text-decoration: underline;
-}
-
-.container {
-	margin-left: auto;
-	margin-right: auto;
-	max-width: 720px;
-	padding: 1em;
-}
-
-.footer {
-	margin-top: 50px;
-	border-top: 1px solid #eee;
-	padding: 20px 0;
-	font-size: 12px;
-	color: #999;
 }
 
 h1, h2, h3, h4, h5, h6 {
@@ -57,5 +38,35 @@ label {
 }
 
 .ReactCodeMirror {
-	border: 1px solid #ccc;
+	border: 0px solid #ccc;
+    height: 100%;
+}
+
+.CodeMirror {
+    height: 100%;
+}
+
+.flex-container {
+    list-style: none;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+    height: 100vh;
+    -webkit-flex-flow: row wrap;
+    justify-content: space-around;
+}
+.tiny-flex {
+    width: 2px;
+    height: 100vh;
+    color: black;
+}
+.flex-item {
+    width: 50%;
+    height: 100vh;
+    flex: 1;
+    color: white;
+    overflow-y: auto;
 }
