@@ -63,10 +63,47 @@ label {
     height: 100vh;
     color: black;
 }
+
 .flex-item {
-    width: 50%;
     height: 100vh;
-    flex: 1;
     color: white;
     overflow-y: auto;
+}
+
+.run-button {
+	background-color:transparent;
+	-moz-border-radius:5px;
+	-webkit-border-radius:5px;
+	border-radius:5px;
+	display:inline-block;
+    border:1px solid #e7e7e7;
+	cursor:pointer;
+	color:#ffffff;
+	font-family:Arial;
+	font-size:21px;
+	padding:6px 24px;
+	text-decoration:none;
+    -webkit-transition-duration: 0.4s;
+    transition-duration: 0.4s;
+}
+.run-button:hover {
+	background-color:#e7e7e7;
+}
+.run-button:active {
+	position:relative;
+	top:1px;
+}
+
+.lang-select {
+    background-color:transparent;
+    -moz-border-radius:5px;
+    -webkit-border-radius:5px;
+    border-radius:5px;
+    display:inline-block;
+    border:1px solid #e7e7e7;
+    cursor:pointer;
+    color:#ffffff;
+    font-family:Arial;
+    font-size:21px;
+    padding:6px 24px;
 }
