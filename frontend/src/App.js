@@ -5,6 +5,7 @@ var Draggable = require('react-draggable');
 
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
+require('codemirror/mode/python/python');
 require('codemirror/theme/solarized.css')
 require('./index.css')
 
@@ -15,7 +16,9 @@ var App = React.createClass({
             stdout: "",
             stderr: "",
             leftFlex: .5,
-            rightFlex: .5
+            rightFlex: .5,
+            language: "go"
+
         };
     },
     updateCode: function(newCode) {
@@ -24,7 +27,8 @@ var App = React.createClass({
             stdout: this.state.stdout,
             stderr: this.state.stderr,
             leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex
+            rightFlex: this.state.rightFlex,
+            language: this.state.language
         });
     },
     updateStdOut: function(newOut) {
@@ -33,7 +37,8 @@ var App = React.createClass({
             stdout: newOut,
             stderr: this.state.stderr,
             leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex
+            rightFlex: this.state.rightFlex,
+            language: this.state.language
         });
     },
     updateStdErr: function(newErr) {
@@ -42,12 +47,13 @@ var App = React.createClass({
             stdout: this.state.stdout,
             stderr: newErr,
             leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex
+            rightFlex: this.state.rightFlex,
+            language: this.state.language
         });
     },
     runCode: function() {
         var self = this;
-        fetch('http://localhost:8000/run/GoLang', {
+        fetch(`http://localhost:8000/run/${this.state.language}`, {
             method: 'POST',
             headers: {
                 'Accept': '*/*',
@@ -71,7 +77,8 @@ var App = React.createClass({
             stdout: "",
             stderr: "",
             leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex
+            rightFlex: this.state.rightFlex,
+            language: this.state.language
         });
     },
     handleDrag: function(e, position) {
@@ -80,25 +87,37 @@ var App = React.createClass({
             stdout: "",
             stderr: "",
             leftFlex: (position.x + window.innerWidth/2) / window.innerWidth,
-            rightFlex: 1 - (position.x + window.innerWidth/2) / window.innerWidth
+            rightFlex: 1 - (position.x + window.innerWidth/2) / window.innerWidth,
+            language: this.state.language
         });
         console.log(position.x);
         console.log(window.innerWidth);
         console.log((position.x + window.innerWidth/2) / window.innerWidth);
     },
+    handleLangChange: function(event) {
+        this.setState({
+            code: this.state.code,
+            stdout: this.state.stdout,
+            stderr: this.state.stderr,
+            leftFlex: this.state.leftFlex,
+            rightFlex: this.state.rightFlex,
+            language: event.target.value
+        });
+    },
     render: function() {
         var options = {
             lineNumbers: true,
             theme: 'solarized dark',
-            mode: 'go'
+            mode: this.state.language
         };
         return (
             <div ref="parentDiv">
                 <div>
                     <button onClick={this.runCode} className="run-button"> Run &#9658; </button>
                     <button onClick={this.clear} className="run-button"> Clear </button>
-                    <select className="lang-select">
-                        <option value="Go">Go</option>
+                    <select className="lang-select" onChange={this.handleLangChange}>
+                        <option value="go">Go</option>
+                        <option value="python">Python</option>
                     </select>
                 </div>
                 <div className="flex-container">
