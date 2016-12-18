@@ -127,10 +127,11 @@ func runGo(w http.ResponseWriter, r *http.Request) {
 
 func main() {
     hub := NewHub()
+    go hub.Run()
 	http.HandleFunc("/run/go", runGo)
     http.HandleFunc("/run/python", runPython)
     http.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
-        handleCodeShare(hub, w, r)
+        HandleCodeShare(hub, w, r)
     })
 	http.ListenAndServe(":8000", nil)
 }

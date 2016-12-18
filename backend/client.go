@@ -7,7 +7,7 @@ import (
 
 type Client struct {
     connection *websocket.Conn
-    send chan []byte
+    send chan *Code
     room_number uint32
     name string
 }
@@ -19,7 +19,7 @@ type OutBoundMessage struct {
 
 func (c *Client) Receive(hub *Hub) {
 	defer func() {
-        hub.unregister <- client
+        hub.unregister <- c
 		c.connection.Close()
 	}()
     var code Code
@@ -29,16 +29,40 @@ func (c *Client) Receive(hub *Hub) {
 			break
 		}
         json.Unmarshal(message, &code)
-        c.Send(hub, &code)
+        outmessage := &OutBoundMessage{
+            room_number: c.room_number,
+            code: &code,
+        }
+        hub.messages <- outmessage
 	}
 }
 
-func (c *Client) Send(hub *Hub, code *Code) {
-    clients := hub.rooms[c.room_number]
-	for _, elem := range clients{
-        out, _ := json.Marshal(&code)
-        err := elem.connection.WriteMessage(websocket.BinaryMessage, out);
-        if err != nil {
+func (c *Client) Send(hub *Hub) {
+    for {
+		w, err := c.connection.NextWriter(websocket.BinaryMessage)
+		if err != nil {
+			return
+		}
+
+		for i := 0; i < len(c.send); i++ {
+            code, ok := <-c.send
+            /*
+            if ok == false then the channel has been closed so the client
+            is no longer active
+            */
+            if !ok {
+    			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
+    			return
+    		}
+            message, err := json.Marshal(code)
+            if err != nil {
+    			return
+    		}
+			w.Write(message)
+		}
+
+        err = w.Close()
+		if err != nil {
 			return
 		}
 	}

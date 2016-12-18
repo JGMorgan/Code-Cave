@@ -5,6 +5,7 @@ import (
     "math/rand"
     "net/http"
     "bytes"
+    "encoding/json"
 )
 
 type Hub struct {
@@ -38,7 +39,7 @@ func NewHub() *Hub{
 	}
 }
 
-func handleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
+func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
     var conninfo ConnectionInfo
     buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
@@ -51,44 +52,49 @@ func handleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
     }
     client := &Client{
         connection: conn,
-        send: make(chan []byte, 1024),
+        send: make(chan *Code),
         name: conninfo.client_name,
         room_number: conninfo.room_number}
     hub.register <- client
-	client.Receive()
+	go client.Receive(hub)
+    client.Send(hub)
 }
 
-func (hub *Hub) run() {
+func (hub *Hub) Run() {
     for {
 		select {
-		case client := <-h.register:
+        case message := <-hub.messages:
+            for i, _ := range hub.rooms[message.room_number] {
+                hub.rooms[message.room_number][i].send <- message.code
+            }
+		case client := <-hub.register:
             /*
             exists defaults to false because if a room number is specified then
             we don't want to trip that for loop, otherwise the for loop will be tripped
             if room number is 0 then it is considered to not exist
             */
             exists := false
-            for conninfo.room_number == 0 || exists {
-                conninfo.room_number = rand.Uint32()
-                _, exists = hub.rooms[conninfo.room_number]
+            for client.room_number == 0 || exists {
+                client.room_number = rand.Uint32()
+                _, exists = hub.rooms[client.room_number]
             }
-            _, exists := hub.rooms[conninfo.room_number]
+            _, exists = hub.rooms[client.room_number]
             if !exists {
-                hub.rooms[conninfo.room_number] = []*Client{client}
+                hub.rooms[client.room_number] = []*Client{client}
             }else{
-                hub.rooms[conninfo.room_number] = append(hub.rooms[conninfo.room_number], client)
+                hub.rooms[client.room_number] = append(hub.rooms[client.room_number], client)
             }
-		case client := <-h.unregister:
-            clients, ok := h.rooms[client.room_number];
+		case client := <-hub.unregister:
+            clients, ok := hub.rooms[client.room_number];
 			if ok {
                 //if there is nobody in that room, then we close the room
                 if len(clients) == 0 {
-                    delete(h.rooms, client.room_number)
+                    delete(hub.rooms, client.room_number)
                 }else{
                     for i, _ := range clients {
                         //else delete client that left
-                        if client == h.rooms[client.room_number][i] {
-                            h.rooms[client.room_number] = append(h.rooms[client.room_number][:i], h.rooms[client.room_number][i+1:]...)
+                        if client == hub.rooms[client.room_number][i] {
+                            hub.rooms[client.room_number] = append(hub.rooms[client.room_number][:i], hub.rooms[client.room_number][i+1:]...)
                         }
                     }
                 }
