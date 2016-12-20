@@ -32,6 +32,8 @@ func handleCors(w http.ResponseWriter) {
 }
 
 func runPython(w http.ResponseWriter, r *http.Request) {
+    defer exec.Command("rm", "test.py").Start()
+
     handleCors(w)
 
     var code Code
@@ -79,6 +81,8 @@ func runPython(w http.ResponseWriter, r *http.Request) {
 }
 
 func runGo(w http.ResponseWriter, r *http.Request) {
+    defer exec.Command("rm", "test.go").Start()
+
     handleCors(w)
 
     var code Code
@@ -133,5 +137,8 @@ func main() {
     http.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
         HandleCodeShare(hub, w, r)
     })
-	http.ListenAndServe(":8000", nil)
+	err := http.ListenAndServe(":8000", nil)
+    if err != nil {
+        log.Println(err)
+    }
 }

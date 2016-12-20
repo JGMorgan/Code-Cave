@@ -6,6 +6,7 @@ import (
     "net/http"
     "bytes"
     "encoding/json"
+    "log"
 )
 
 type Hub struct {
@@ -28,6 +29,7 @@ type ConnectionInfo struct {
 var upgrader = websocket.Upgrader {
     ReadBufferSize: 1024,
     WriteBufferSize: 1024,
+    CheckOrigin: func(r *http.Request) bool { return true },
 }
 
 func NewHub() *Hub{
@@ -40,19 +42,18 @@ func NewHub() *Hub{
 }
 
 func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
+    conn, err := upgrader.Upgrade(w, r, nil)
+    if err != nil {
+        log.Println(err)
+        return
+    }
     var conninfo ConnectionInfo
     buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &conninfo)
-
-    conn, err := upgrader.Upgrade(w, r, nil)
-    if err != nil {
-        //log.Println(err)
-        return
-    }
     client := &Client{
         connection: conn,
-        send: make(chan *Code),
+        send: make(chan *Code, 1024),
         name: conninfo.client_name,
         room_number: conninfo.room_number}
     hub.register <- client
@@ -64,10 +65,12 @@ func (hub *Hub) Run() {
     for {
 		select {
         case message := <-hub.messages:
+            log.Println("message")
             for i, _ := range hub.rooms[message.room_number] {
                 hub.rooms[message.room_number][i].send <- message.code
             }
 		case client := <-hub.register:
+            log.Println("register")
             /*
             exists defaults to false because if a room number is specified then
             we don't want to trip that for loop, otherwise the for loop will be tripped
@@ -85,6 +88,7 @@ func (hub *Hub) Run() {
                 hub.rooms[client.room_number] = append(hub.rooms[client.room_number], client)
             }
 		case client := <-hub.unregister:
+            log.Println("unregister")
             clients, ok := hub.rooms[client.room_number];
 			if ok {
                 //if there is nobody in that room, then we close the room

@@ -9,6 +9,8 @@ require('codemirror/mode/python/python');
 require('codemirror/theme/solarized.css')
 require('./index.css')
 
+var ws = null;
+
 var App = React.createClass({
     getInitialState: function() {
         return {
@@ -103,14 +105,8 @@ var App = React.createClass({
             language: event.target.value
         });
     },
-    render: function() {
-        var options = {
-            lineNumbers: true,
-            theme: 'solarized dark',
-            mode: this.state.language
-        };
-
-        var ws = new WebSocket('ws://localhost:8000/share');
+    componentDidMount: function() {
+        ws = new WebSocket('ws://localhost:8000/share');
 
         ws.onopen = () => {
             ws.send(JSON.stringify({
@@ -137,6 +133,14 @@ var App = React.createClass({
 
         ws.onclose = (e) => {
             console.log(e.code, e.reason);
+        };
+
+    },
+    render: function() {
+        var options = {
+            lineNumbers: true,
+            theme: 'solarized dark',
+            mode: this.state.language
         };
 
         return (

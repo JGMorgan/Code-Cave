@@ -3,6 +3,7 @@ package main
 import (
     "github.com/gorilla/websocket"
     "encoding/json"
+    "log"
 )
 
 type Client struct {
@@ -29,6 +30,7 @@ func (c *Client) Receive(hub *Hub) {
 			break
 		}
         json.Unmarshal(message, &code)
+        log.Println(code.Language)
         outmessage := &OutBoundMessage{
             room_number: c.room_number,
             code: &code,
@@ -39,11 +41,6 @@ func (c *Client) Receive(hub *Hub) {
 
 func (c *Client) Send(hub *Hub) {
     for {
-		w, err := c.connection.NextWriter(websocket.BinaryMessage)
-		if err != nil {
-			return
-		}
-
 		for i := 0; i < len(c.send); i++ {
             code, ok := <-c.send
             /*
@@ -54,16 +51,13 @@ func (c *Client) Send(hub *Hub) {
     			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
     			return
     		}
+            log.Println("sending")
+            log.Println(code.Content)
             message, err := json.Marshal(code)
             if err != nil {
     			return
     		}
-			w.Write(message)
-		}
-
-        err = w.Close()
-		if err != nil {
-			return
+			c.connection.WriteMessage(websocket.TextMessage, message)
 		}
 	}
 }
