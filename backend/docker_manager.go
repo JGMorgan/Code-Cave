@@ -17,6 +17,7 @@ func CreateContainer(language string, files []File) {
 
     args = append(args, "-e", "NUM_FILES="+ strconv.Itoa(len(files)));
 
+    //add env variables to docker command containing file info
     for i := 0; i < len(files); i++ {
         var n = strconv.Itoa(i);
         args = append(args, "-e", "FILE_NAME_"+n+"="+files[i].name);
@@ -28,7 +29,7 @@ func CreateContainer(language string, files []File) {
         args = append(args, "shared_python");
     }
 
-    fmt.Println(args);
+    //fmt.Println(args);
 
     cmd := exec.Command("docker", args...)
     stdout, err := cmd.StdoutPipe()
@@ -55,7 +56,7 @@ func main() {
    var files = []File {
        File {
            name: "main.py",
-           content: "print(\"Hello World!\")",
+           content: "print(\"Hello World! I am python!\")",
        },
        File {
            name: "lib.py",
