@@ -81,17 +81,18 @@ var App = React.createClass({
         });
     },
     handleDrag: function(e, position) {
+        console.log(e);
         this.setState({
             code: this.state.code,
             stdout: "",
             stderr: "",
-            leftFlex: (position.x + window.innerWidth/2) / window.innerWidth,
-            rightFlex: 1 - (position.x + window.innerWidth/2) / window.innerWidth,
+            leftFlex: .5 + position.x / window.innerWidth,
+            rightFlex: 1 - (.5 + position.x / window.innerWidth),
             language: this.state.language
         });
-        console.log(position.x);
-        console.log(window.innerWidth);
-        console.log((position.x + window.innerWidth/2) / window.innerWidth);
+        console.log("X: " + position.x);
+        console.log("inner width: " + window.innerWidth);
+        console.log("Left flex: " + this.state.leftFlex);
     },
     handleLangChange: function(event) {
         this.setState({
@@ -105,9 +106,10 @@ var App = React.createClass({
     },
     render: function() {
         var options = {
+            scrollbarStyle: 'null',
             lineNumbers: true,
             theme: 'solarized dark',
-            mode: this.state.language
+            mode: this.state.language,
         };
 
         var ws = new WebSocket('ws://localhost:8000/share');
