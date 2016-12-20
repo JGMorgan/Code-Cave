@@ -52,6 +52,10 @@ var App = React.createClass({
     },
     runCode: function() {
         var self = this;
+        var runButton = document.getElementById("run");
+        runButton.firstChild.data = "Stop ◼";
+        runButton.className += "running";
+
         fetch(`http://localhost:8000/run/${this.state.language}`, {
             method: 'POST',
             headers: {
@@ -63,12 +67,21 @@ var App = React.createClass({
                 Content: this.state.code
             })
         }).then((response) => {
+            runButton.firstChild.data = "Run ►";
+            runButton.className = runButton.className.replace(/\brunning\b/,'');
             return response.json();
         }).then(function(data) {
             console.log(data);
             self.updateStdOut(data.Output)
             self.updateStdErr(data.Error)
+            runButton.firstChild.data = "Run ►";
+            runButton.className = runButton.className.replace(/\brunning\b/,'');
+        }).catch(function(){
+            runButton.firstChild.data = "Run ►";
+            runButton.className = runButton.className.replace(/\brunning\b/,'');
         });
+
+
     },
     clear: function() {
         this.setState({
@@ -143,20 +156,24 @@ var App = React.createClass({
 
         return (
             <div ref="parentDiv">
-                <div>
-                    <button onClick={this.runCode} className="run-button"> Run &#9658; </button>
-                    <button onClick={this.clear} className="run-button"> Clear </button>
-                    <select className="lang-select" onChange={(event) => {this.handleLangChange(event);
-                        ws.send(JSON.stringify({
-                            Language: this.state.language,
-                            Content: this.state.code
-                        }));}}>
-                            <option value="go">Go</option>
-                            <option value="python">Python</option>
-                    </select>
+                <div className="top-menu">
+                    <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
+                        <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
+                        <select className="lang-select" onChange={(event) => {this.handleLangChange(event);
+                            ws.send(JSON.stringify({
+                                Language: this.state.language,
+                                Content: this.state.code
+                            }));}}>
+                                <option value="go">Go</option>
+                                <option value="python">Python</option>
+                        </select>
+                    </div>
+                    <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
+                        <button onClick={this.clear} className="menu-item"> Clear </button>
+                    </div>
                 </div>
                 <div className="flex-container">
-                    <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
+                    <div className="flex-item code-container" style={{flex: this.state.leftFlex.toString()}}>
                         <CodeMirror value={this.state.code}
                         onChange={(event) => {this.updateCode(event);
                             ws.send(JSON.stringify({
@@ -178,7 +195,7 @@ var App = React.createClass({
                             <div className="tiny-flex" style={{cursor: 'col-resize'}}></div>
                         </div>
                     </Draggable>
-                    <div className="flex-item" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
+                    <div className="flex-item code-container" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
                         <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
                         <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
                     </div>
