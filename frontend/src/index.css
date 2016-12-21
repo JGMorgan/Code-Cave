@@ -17,7 +17,7 @@ a:hover {
 }
 
 h1, h2, h3, h4, h5, h6 {
-	color: #222;
+	color: #ffffff;
 	font-weight: 100;
 	margin: 0.5em 0;
 }
@@ -124,4 +124,26 @@ label {
     font-family:Arial;
     font-size:21px;
     padding:6px 24px;
+}
+
+#settings-modal{
+	position: fixed;
+	top: 45vh;
+	left:35vw;
+	margin: auto auto;
+	background-color: black;
+	z-index:99;
+	color: #ffffff;
+}
+
+.setting-ok {
+	position: static;
+	text-align: center;
+}
+
+.row{
+	display: flex;
+}
+.row h2 {
+	margin-right: 8px;
 }
