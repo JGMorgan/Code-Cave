@@ -81,7 +81,7 @@ var App = React.createClass({
     },
     updateStdOut: function(newOut) {
         this.setState({
-            stdout: newOut,
+            stdout: this.state.stdout + newOut,
         });
     },
     updateStdErr: function(newErr) {
@@ -94,16 +94,16 @@ var App = React.createClass({
         var runButton = document.getElementById("run");
         runButton.firstChild.data = "Stop ◼";
         runButton.className += "running";
+        fetch(`http://localhost:8000/run/${self.state.language}`, {
 
-        fetch(`http://localhost:8000/run/${this.state.language}`, {
             method: 'POST',
             headers: {
                 'Accept': '*/*',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                Language: this.state.language,
-                Content: this.state.code
+                Language: self.state.language,
+                Content: self.state.code
             })
         }).then((response) => {
             runButton.firstChild.data = "Run ►";
@@ -129,22 +129,23 @@ var App = React.createClass({
         });
     },
     handleDrag: function(e, position) {
-        console.log(e);
         this.setState({
-            code: this.state.code,
-            stdout: "",
-            stderr: "",
             leftFlex: .5 + position.x / window.innerWidth,
             rightFlex: 1 - (.5 + position.x / window.innerWidth),
-            language: this.state.language
         });
-        console.log("X: " + position.x);
-        console.log("inner width: " + window.innerWidth);
-        console.log("Left flex: " + this.state.leftFlex);
     },
     handleLangChange: function(event) {
+        var _this = this;
+        var lang = event.target.value
         this.setState({
-            language: event.target.value
+            options: {
+                scrollbarStyle: 'null',
+                lineNumbers: true,
+                theme: _this.state.options.theme,
+                mode: lang,
+            },
+            language: lang
+
         });
     },
     sendCode: function() {
@@ -175,14 +176,10 @@ var App = React.createClass({
         };
 
         ws.onmessage = (e) => {
-            this.setState({
-                code: e.data.Content,
-                stdout: this.state.stdout,
-                stderr: this.state.stderr,
-                leftFlex: this.state.leftFlex,
-                rightFlex: this.state.rightFlex,
-                language: e.data.Language
-            });
+            // this.setState({
+            //     code: e.data.Content,
+            //     language: e.data.Language
+            // });
             console.log(e.data);
         };
 
@@ -203,8 +200,9 @@ var App = React.createClass({
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
                         <select className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
-                            <option value="go">Go</option>
+                            <option selected="selected" value="go">Go</option>
                             <option value="python">Python</option>
+                            <option value="haskell">Haskell</option>
                         </select>
                         <select className="lang-select" onChange={(event) => {this.handleThemeChange(event)}}>
                             <option>3024-day</option>
