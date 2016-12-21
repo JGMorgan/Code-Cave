@@ -27,6 +27,11 @@ func CreateContainer(language string, files []File) {
     switch language {
     case "python" :
         args = append(args, "shared_python");
+        break;
+    case "golang" :
+        fmt.Println("Using golang");
+        args = append(args, "shared_golang");
+        break;
     }
 
     //fmt.Println(args);
@@ -54,9 +59,14 @@ func CreateContainer(language string, files []File) {
 
 func main() {
    var files = []File {
+   //print(\"Hello World! I am python!\")
        File {
            name: "main.py",
-           content: "print(\"Hello World! I am python!\")",
+           content: `package main
+import "fmt"
+func main() {
+    fmt.Println("hello world")
+}`,
        },
        File {
            name: "lib.py",
@@ -67,5 +77,5 @@ func main() {
            content: "The quick brown fox jumps over the lazy dog",
        },
    }
-   CreateContainer("python", files)
+   CreateContainer("golang", files)
 }
