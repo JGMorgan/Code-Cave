@@ -6,7 +6,53 @@ var Draggable = require('react-draggable');
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
 require('codemirror/mode/python/python');
-require('codemirror/theme/solarized.css')
+require("codemirror/theme/3024-day.css")
+require("codemirror/theme/3024-night.css")
+require("codemirror/theme/abcdef.css")
+require("codemirror/theme/ambiance.css")
+require("codemirror/theme/base16-dark.css")
+require("codemirror/theme/bespin.css")
+require("codemirror/theme/base16-light.css")
+require("codemirror/theme/blackboard.css")
+require("codemirror/theme/cobalt.css")
+require("codemirror/theme/colorforth.css")
+require("codemirror/theme/dracula.css")
+require("codemirror/theme/duotone-dark.css")
+require("codemirror/theme/duotone-light.css")
+require("codemirror/theme/eclipse.css")
+require("codemirror/theme/elegant.css")
+require("codemirror/theme/erlang-dark.css")
+require("codemirror/theme/hopscotch.css")
+require("codemirror/theme/icecoder.css")
+require("codemirror/theme/isotope.css")
+require("codemirror/theme/lesser-dark.css")
+require("codemirror/theme/liquibyte.css")
+require("codemirror/theme/material.css")
+require("codemirror/theme/mbo.css")
+require("codemirror/theme/mdn-like.css")
+require("codemirror/theme/midnight.css")
+require("codemirror/theme/monokai.css")
+require("codemirror/theme/neat.css")
+require("codemirror/theme/neo.css")
+require("codemirror/theme/night.css")
+require("codemirror/theme/panda-syntax.css")
+require("codemirror/theme/paraiso-dark.css")
+require("codemirror/theme/paraiso-light.css")
+require("codemirror/theme/pastel-on-dark.css")
+require("codemirror/theme/railscasts.css")
+require("codemirror/theme/rubyblue.css")
+require("codemirror/theme/seti.css")
+require("codemirror/theme/solarized.css")
+require("codemirror/theme/the-matrix.css")
+require("codemirror/theme/tomorrow-night-bright.css")
+require("codemirror/theme/tomorrow-night-eighties.css")
+require("codemirror/theme/ttcn.css")
+require("codemirror/theme/twilight.css")
+require("codemirror/theme/vibrant-ink.css")
+require("codemirror/theme/xq-dark.css")
+require("codemirror/theme/xq-light.css")
+require("codemirror/theme/yeti.css")
+require("codemirror/theme/zenburn.css")
 require('./index.css')
 
 var App = React.createClass({
@@ -17,37 +63,28 @@ var App = React.createClass({
             stderr: "",
             leftFlex: .5,
             rightFlex: .5,
-            language: "go"
+            language: "go",
+            options : {
+                scrollbarStyle: 'null',
+                lineNumbers: true,
+                theme: 'solarized dark',
+                mode: "go",
+            }
         };
     },
     updateCode: function(newCode) {
         this.setState({
-            code: newCode,
-            stdout: this.state.stdout,
-            stderr: this.state.stderr,
-            leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex,
-            language: this.state.language
+            code: newCode
         });
     },
     updateStdOut: function(newOut) {
         this.setState({
-            code: this.state.code,
             stdout: newOut,
-            stderr: this.state.stderr,
-            leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex,
-            language: this.state.language
         });
     },
     updateStdErr: function(newErr) {
         this.setState({
-            code: this.state.code,
-            stdout: this.state.stdout,
             stderr: newErr,
-            leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex,
-            language: this.state.language
         });
     },
     runCode: function() {
@@ -85,12 +122,8 @@ var App = React.createClass({
     },
     clear: function() {
         this.setState({
-            code: this.state.code,
             stdout: "",
             stderr: "",
-            leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex,
-            language: this.state.language
         });
     },
     handleDrag: function(e, position) {
@@ -109,22 +142,20 @@ var App = React.createClass({
     },
     handleLangChange: function(event) {
         this.setState({
-            code: this.state.code,
-            stdout: this.state.stdout,
-            stderr: this.state.stderr,
-            leftFlex: this.state.leftFlex,
-            rightFlex: this.state.rightFlex,
             language: event.target.value
         });
     },
+    handleThemeChange: function(event) {
+        this.setState({
+            options: {
+                scrollbarStyle: 'null',
+                lineNumbers: true,
+                theme: event.target.value,
+                mode: this.state.language,
+            }
+        });
+    },
     render: function() {
-        var options = {
-            scrollbarStyle: 'null',
-            lineNumbers: true,
-            theme: 'solarized dark',
-            mode: this.state.language,
-        };
-
         var ws = new WebSocket('ws://localhost:8000/share');
 
         ws.onopen = () => {
@@ -167,6 +198,56 @@ var App = React.createClass({
                                 <option value="go">Go</option>
                                 <option value="python">Python</option>
                         </select>
+                        <select className="lang-select" onChange={(event) => {this.handleThemeChange(event)}}>
+                            <option>3024-day</option>
+                            <option>3024-night</option>
+                            <option>abcdef</option>
+                            <option>ambiance</option>
+                            <option>base16-dark</option>
+                            <option>base16-light</option>
+                            <option>bespin</option>
+                            <option selected="">default</option><option>blackboard</option>
+                            <option>cobalt</option>
+                            <option>colorforth</option>
+                            <option>dracula</option>
+                            <option>duotone-dark</option>
+                            <option>duotone-light</option>
+                            <option>eclipse</option>
+                            <option>elegant</option>
+                            <option>erlang-dark</option>
+                            <option>hopscotch</option>
+                            <option>icecoder</option>
+                            <option>isotope</option>
+                            <option>lesser-dark</option>
+                            <option>liquibyte</option>
+                            <option>material</option>
+                            <option>mbo</option>
+                            <option>mdn-like</option>
+                            <option>midnight</option>
+                            <option>monokai</option>
+                            <option>neat</option>
+                            <option>neo</option>
+                            <option>night</option>
+                            <option>panda-syntax</option>
+                            <option>paraiso-dark</option>
+                            <option>paraiso-light</option>
+                            <option>pastel-on-dark</option>
+                            <option>railscasts</option>
+                            <option>rubyblue</option>
+                            <option>seti</option>
+                            <option selected="selected">solarized dark</option>
+                            <option>solarized light</option>
+                            <option>the-matrix</option>
+                            <option>tomorrow-night-bright</option>
+                            <option>tomorrow-night-eighties</option>
+                            <option>ttcn</option>
+                            <option>twilight</option>
+                            <option>vibrant-ink</option>
+                            <option>xq-dark</option>
+                            <option>xq-light</option>
+                            <option>yeti</option>
+                            <option>zenburn</option>
+                        </select>
                     </div>
                     <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
                         <button onClick={this.clear} className="menu-item"> Clear </button>
@@ -180,7 +261,7 @@ var App = React.createClass({
                                 Language: this.state.language,
                                 Content: this.state.code
                             }));}}
-                        options={options} />
+                        options={this.state.options} />
                     </div>
                     <Draggable
                      axis="x"

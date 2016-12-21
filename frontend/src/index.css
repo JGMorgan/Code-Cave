@@ -113,7 +113,7 @@ label {
 }
 
 .lang-select {
-    background-color:transparent;
+    background-color:black;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
     border-radius:5px;
