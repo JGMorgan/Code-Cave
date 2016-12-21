@@ -64,13 +64,19 @@ label {
     color: black;
 }
 
-.flex-item {
-    height: 100vh;
-    color: white;
-    overflow-y: auto;
+
+.top-menu {
+	display: flex;
 }
 
-.run-button {
+.code-container {
+
+	    height: 100vh;
+	    color: white;
+	    overflow-y: auto;
+}
+
+.menu-item {
 	background-color:transparent;
 	-moz-border-radius:5px;
 	-webkit-border-radius:5px;
@@ -86,12 +92,20 @@ label {
     -webkit-transition-duration: 0.4s;
     transition-duration: 0.4s;
 }
-.run-button:hover {
+.menu-item:hover {
 	background-color:#e7e7e7;
 }
-.run-button:active {
+.menu-item:active {
 	position:relative;
 	top:1px;
+}
+
+.run-button {
+	background-color: green;
+}
+
+.running {
+	background-color: red;
 }
 
 .handle{
@@ -99,7 +113,7 @@ label {
 }
 
 .lang-select {
-    background-color:transparent;
+    background-color:black;
     -moz-border-radius:5px;
     -webkit-border-radius:5px;
     border-radius:5px;
