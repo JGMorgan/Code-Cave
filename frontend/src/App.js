@@ -83,17 +83,18 @@ var App = React.createClass({
         });
     },
     handleDrag: function(e, position) {
+        console.log(e);
         this.setState({
             code: this.state.code,
             stdout: "",
             stderr: "",
-            leftFlex: (position.x + window.innerWidth/2) / window.innerWidth,
-            rightFlex: 1 - (position.x + window.innerWidth/2) / window.innerWidth,
+            leftFlex: .5 + position.x / window.innerWidth,
+            rightFlex: 1 - (.5 + position.x / window.innerWidth),
             language: this.state.language
         });
-        console.log(position.x);
-        console.log(window.innerWidth);
-        console.log((position.x + window.innerWidth/2) / window.innerWidth);
+        console.log("X: " + position.x);
+        console.log("inner width: " + window.innerWidth);
+        console.log("Left flex: " + this.state.leftFlex);
     },
     handleLangChange: function(event) {
         this.setState({
@@ -104,6 +105,12 @@ var App = React.createClass({
             rightFlex: this.state.rightFlex,
             language: event.target.value
         });
+    },
+    sendCode: function() {
+        ws.send(JSON.stringify({
+            Language: this.state.language,
+            Content: this.state.code
+        }));
     },
     componentDidMount: function() {
         ws = new WebSocket('ws://localhost:8000/share');
@@ -148,23 +155,15 @@ var App = React.createClass({
                 <div>
                     <button onClick={this.runCode} className="run-button"> Run &#9658; </button>
                     <button onClick={this.clear} className="run-button"> Clear </button>
-                    <select className="lang-select" onChange={(event) => {this.handleLangChange(event);
-                        ws.send(JSON.stringify({
-                            Language: this.state.language,
-                            Content: this.state.code
-                        }));}}>
-                            <option value="go">Go</option>
-                            <option value="python">Python</option>
+                    <select className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
+                        <option value="go">Go</option>
+                        <option value="python">Python</option>
                     </select>
                 </div>
                 <div className="flex-container">
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <CodeMirror value={this.state.code}
-                        onChange={(event) => {this.updateCode(event);
-                            ws.send(JSON.stringify({
-                                Language: this.state.language,
-                                Content: this.state.code
-                            }));}}
+                        onChange={(event) => {this.updateCode(event);this.sendCode()}}
                         options={options} />
                     </div>
                     <Draggable

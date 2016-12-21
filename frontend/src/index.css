@@ -94,6 +94,10 @@ label {
 	top:1px;
 }
 
+.handle{
+	 transform: translate(0px, 0px) !important;
+}
+
 .lang-select {
     background-color:transparent;
     -moz-border-radius:5px;
