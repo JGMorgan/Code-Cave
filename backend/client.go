@@ -30,7 +30,6 @@ func (c *Client) Receive(hub *Hub) {
 			break
 		}
         json.Unmarshal(message, &code)
-        log.Println(code.Language)
         outmessage := &OutBoundMessage{
             room_number: c.room_number,
             code: &code,
