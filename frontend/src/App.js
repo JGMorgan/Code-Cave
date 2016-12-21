@@ -164,6 +164,11 @@ var App = React.createClass({
                 mode: this.state.language,
             }
         });
+
+    },
+    showSettings: function(){
+        var sett = document.getElementById('settings-modal');
+        sett.hidden= !sett.hidden;
     },
     componentDidMount: function() {
         ws = new WebSocket('ws://localhost:8000/share');
@@ -204,6 +209,39 @@ var App = React.createClass({
                             <option value="python">Python</option>
                             <option value="haskell">Haskell</option>
                         </select>
+                        <button className="menu-item" onClick={this.showSettings}>⚙</button>
+                    </div>
+                    <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
+                        <button onClick={this.clear} className="menu-item"> Clear </button>
+                    </div>
+                </div>
+                <div className="flex-container">
+                    <div className="flex-item code-container" style={{flex: this.state.leftFlex.toString()}}>
+                        <CodeMirror value={this.state.code}
+                        onChange={(event) => {this.updateCode(event);this.sendCode()}}
+                        options={this.state.options} />
+                    </div>
+                    <Draggable
+                     axis="x"
+                     handle=".handle"
+                     bounds="body"
+                     defaultPosition={{x: 0, y: 0}}
+                     position={null}
+                     onStart={this.handleStart}
+                     onDrag={this.handleDrag}
+                     onStop={this.handleStop}>
+                        <div className="handle">
+                            <div className="tiny-flex" style={{cursor: 'col-resize'}}></div>
+                        </div>
+                    </Draggable>
+                    <div className="flex-item code-container" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
+                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
+                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
+                    </div>
+                </div>
+                <div id="settings-modal" hidden>
+                    <div className="row">
+                        <h2>Theme:</h2>
                         <select className="lang-select" onChange={(event) => {this.handleThemeChange(event)}}>
                             <option>3024-day</option>
                             <option>3024-night</option>
@@ -255,32 +293,8 @@ var App = React.createClass({
                             <option>zenburn</option>
                         </select>
                     </div>
-                    <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
-                        <button onClick={this.clear} className="menu-item"> Clear </button>
-                    </div>
-                </div>
-                <div className="flex-container">
-                    <div className="flex-item code-container" style={{flex: this.state.leftFlex.toString()}}>
-                        <CodeMirror value={this.state.code}
-                        onChange={(event) => {this.updateCode(event);this.sendCode()}}
-                        options={this.state.options} />
-                    </div>
-                    <Draggable
-                     axis="x"
-                     handle=".handle"
-                     bounds="body"
-                     defaultPosition={{x: 0, y: 0}}
-                     position={null}
-                     onStart={this.handleStart}
-                     onDrag={this.handleDrag}
-                     onStop={this.handleStop}>
-                        <div className="handle">
-                            <div className="tiny-flex" style={{cursor: 'col-resize'}}></div>
-                        </div>
-                    </Draggable>
-                    <div className="flex-item code-container" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
+                    <div className=" setting-ok">
+                        <button className="menu-item" onClick={this.showSettings}>OK</button>
                     </div>
                 </div>
             </div>
