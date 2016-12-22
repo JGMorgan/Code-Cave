@@ -76,7 +76,7 @@ var App = React.createClass({
     },
     updateCode: function(newCode) {
         this.setState({
-            code: newCode
+            code: newCode,
         });
     },
     updateStdOut: function(newOut) {
@@ -165,22 +165,19 @@ var App = React.createClass({
         });
     },
     componentDidMount: function() {
+        var self = this;
         ws = new WebSocket('ws://localhost:8000/share');
 
         ws.onopen = () => {
             ws.send(JSON.stringify({
-                room_number: 1234,
-                client_name: "Erlich Bachman"
+                Room_number: 1234,
+                Client_name: "Erlich Bachman"
             }));
         };
 
         ws.onmessage = (e) => {
-            this.setState({
+            self.setState({
                 code: e.data.Content,
-                stdout: this.state.stdout,
-                stderr: this.state.stderr,
-                leftFlex: this.state.leftFlex,
-                rightFlex: this.state.rightFlex,
                 language: e.data.Language
             });
             console.log(e.data);
