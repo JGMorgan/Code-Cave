@@ -61,11 +61,11 @@ func main() {
    var files = []File {
    //print(\"Hello World! I am python!\")
        File {
-           name: "main.py",
+           name: "main.go",
            content: `package main
 import "fmt"
 func main() {
-    fmt.Println("hello world")
+   fmt.Println("hello world")
 }`,
        },
        File {

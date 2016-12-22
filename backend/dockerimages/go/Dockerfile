@@ -5,8 +5,8 @@ ADD ./run.sh /run/run.sh
 
 RUN chmod +x /run/run.sh
 
-RUN mkdir ./wrkdir
-RUN ls
-RUN ls ./wrkdir
+RUN mkdir /wrkdir
+RUN ls -a
+RUN ls -a /wrkdir
 
 ENTRYPOINT ["/run/run.sh"]

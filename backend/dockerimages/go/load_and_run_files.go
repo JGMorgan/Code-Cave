@@ -21,33 +21,26 @@ func main() {
     for i := 0; i < numFiles; i++ {
         var fileName = os.Getenv("FILE_NAME_"+strconv.Itoa(i));
         var fileContent = os.Getenv("FILE_CONTENT_"+strconv.Itoa(i));
-
-        err := ioutil.WriteFile("./wrkdir/"+fileName, []byte(fileContent), 0644)
-
-        if _, err := os.Stat("./wrkdir"); os.IsNotExist(err) {
-            fmt.Println("Error -> ", err);
-            // path/to/whatever does not exist
-        }
+        err := ioutil.WriteFile("/wrkdir/"+fileName, []byte(fileContent), 0644)
         if(err != nil) {
           fmt.Println(err);
           return;
         }
     }
 
-    cmd := exec.Command("go run", ("/wrkdir/"+os.Getenv("FILE_NAME_0")) )
+    cmd := exec.Command("go", "run", ("/wrkdir/"+os.Getenv("FILE_NAME_0")) )
     stdout, err := cmd.StdoutPipe()
     if err != nil {
-        log.Fatal(err)
+        log.Fatal(err);
     }
     stderr, err := cmd.StderrPipe()
     if err != nil {
-        log.Fatal(err)
+        log.Fatal(err);
     }
     err = cmd.Start();
     if err != nil {
-        log.Fatal(err)
+        log.Fatal(err);
     }
-
     stdoutbuf := new(bytes.Buffer)
     stdoutbuf.ReadFrom(stdout)
     fmt.Println(stdoutbuf)
