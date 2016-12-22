@@ -2,6 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var CodeMirror = require('react-codemirror');
 var Draggable = require('react-draggable');
+import Settings  from './Settings';
 
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
@@ -71,7 +72,9 @@ var App = React.createClass({
                 lineNumbers: true,
                 theme: 'solarized dark',
                 mode: "go",
-            }
+            },
+            background: '#002b36',
+            font: '#ffffff',
         };
     },
     updateCode: function(newCode) {
@@ -154,7 +157,16 @@ var App = React.createClass({
             Content: this.state.code
         }));
     },
-
+    handleBGChange: function(color){
+        this.setState({
+            background: color.target.value
+        })
+    },
+    handleColorChange: function(color){
+        this.setState({
+            font: color.target.value
+        })
+    },
     handleThemeChange: function(event) {
         this.setState({
             options: {
@@ -204,8 +216,8 @@ var App = React.createClass({
                 <div className="top-menu">
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
-                        <select className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
-                            <option selected="selected" value="go">Go</option>
+                        <select defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
+                            <option  value="go">Go</option>
                             <option value="python">Python</option>
                             <option value="haskell">Haskell</option>
                         </select>
@@ -234,69 +246,19 @@ var App = React.createClass({
                             <div className="tiny-flex" style={{cursor: 'col-resize'}}></div>
                         </div>
                     </Draggable>
-                    <div className="flex-item code-container" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
+                    <div id="console" className="flex-item code-container" style={{backgroundColor: this.state.background, flex: this.state.rightFlex.toString()}}>
+                        <pre style={{color: this.state.font, fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
+                        <pre style={{color: this.state.font, fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
                     </div>
                 </div>
-                <div id="settings-modal" hidden>
-                    <div className="row">
-                        <h2>Theme:</h2>
-                        <select className="lang-select" onChange={(event) => {this.handleThemeChange(event)}}>
-                            <option>3024-day</option>
-                            <option>3024-night</option>
-                            <option>abcdef</option>
-                            <option>ambiance</option>
-                            <option>base16-dark</option>
-                            <option>base16-light</option>
-                            <option>bespin</option>
-                            <option selected="">default</option><option>blackboard</option>
-                            <option>cobalt</option>
-                            <option>colorforth</option>
-                            <option>dracula</option>
-                            <option>duotone-dark</option>
-                            <option>duotone-light</option>
-                            <option>eclipse</option>
-                            <option>elegant</option>
-                            <option>erlang-dark</option>
-                            <option>hopscotch</option>
-                            <option>icecoder</option>
-                            <option>isotope</option>
-                            <option>lesser-dark</option>
-                            <option>liquibyte</option>
-                            <option>material</option>
-                            <option>mbo</option>
-                            <option>mdn-like</option>
-                            <option>midnight</option>
-                            <option>monokai</option>
-                            <option>neat</option>
-                            <option>neo</option>
-                            <option>night</option>
-                            <option>panda-syntax</option>
-                            <option>paraiso-dark</option>
-                            <option>paraiso-light</option>
-                            <option>pastel-on-dark</option>
-                            <option>railscasts</option>
-                            <option>rubyblue</option>
-                            <option>seti</option>
-                            <option selected="selected">solarized dark</option>
-                            <option>solarized light</option>
-                            <option>the-matrix</option>
-                            <option>tomorrow-night-bright</option>
-                            <option>tomorrow-night-eighties</option>
-                            <option>ttcn</option>
-                            <option>twilight</option>
-                            <option>vibrant-ink</option>
-                            <option>xq-dark</option>
-                            <option>xq-light</option>
-                            <option>yeti</option>
-                            <option>zenburn</option>
-                        </select>
-                    </div>
-                    <div className=" setting-ok">
-                        <button className="menu-item" onClick={this.showSettings}>OK</button>
-                    </div>
-                </div>
+                <Settings
+                    handleThemeChange={this.handleThemeChange}
+                    showSettings={this.showSettings}
+                    handleColorChange={this.handleColorChange}
+                    handleBGChange={this.handleBGChange}
+                    font={this.state.font}
+                    bg={this.state.background}
+                    theme={this.state.options.theme}/>
             </div>
         );
     }
