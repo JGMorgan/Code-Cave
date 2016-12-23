@@ -22,8 +22,8 @@ type Hub struct {
 }
 
 type ConnectionInfo struct {
-    room_number uint32
-    client_name string
+    Room_number uint32
+    Client_name string
 }
 
 var upgrader = websocket.Upgrader {
@@ -54,9 +54,8 @@ func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
     client := &Client{
         connection: conn,
         send: make(chan *Code, 1024),
-        name: conninfo.client_name,
-        room_number: conninfo.room_number}
-    hub.register <- client
+        name: conninfo.Client_name,
+        room_number: conninfo.Room_number}
 	go client.Receive(hub)
     client.Send(hub)
 }

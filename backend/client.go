@@ -24,17 +24,31 @@ func (c *Client) Receive(hub *Hub) {
 		c.connection.Close()
 	}()
     var code Code
+    var conninfo ConnectionInfo
 	for {
 		_, message, err := c.connection.ReadMessage()
 		if err != nil {
 			break
 		}
-        json.Unmarshal(message, &code)
-        outmessage := &OutBoundMessage{
-            room_number: c.room_number,
-            code: &code,
+        err = json.Unmarshal(message, &code)
+        if err != nil {
+			break
+		}
+        if code.Content == "" && code.Language == "" {
+            err = json.Unmarshal(message, &conninfo)
+            if err != nil {
+    			break
+    		}
+            c.room_number = conninfo.Room_number
+            c.name = conninfo.Client_name
+            hub.register <- c
+        }else{
+            outmessage := &OutBoundMessage{
+                room_number: c.room_number,
+                code: &code,
+            }
+            hub.messages <- outmessage
         }
-        hub.messages <- outmessage
 	}
 }
 

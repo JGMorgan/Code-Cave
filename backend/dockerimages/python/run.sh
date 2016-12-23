@@ -1,2 +1,2 @@
 #!/bin/sh
-go run /setup/load_files.go
+go run /setup/load_and_run_files.go

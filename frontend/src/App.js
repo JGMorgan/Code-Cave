@@ -2,6 +2,7 @@ var React = require('react');
 var ReactDOM = require('react-dom');
 var CodeMirror = require('react-codemirror');
 var Draggable = require('react-draggable');
+import Settings  from './Settings';
 
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
@@ -71,7 +72,9 @@ var App = React.createClass({
                 lineNumbers: true,
                 theme: 'solarized dark',
                 mode: "go",
-            }
+            },
+            background: '#002b36',
+            font: '#ffffff',
         };
     },
     updateCode: function(newCode) {
@@ -81,7 +84,7 @@ var App = React.createClass({
     },
     updateStdOut: function(newOut) {
         this.setState({
-            stdout: newOut,
+            stdout: this.state.stdout + newOut,
         });
     },
     updateStdErr: function(newErr) {
@@ -94,16 +97,16 @@ var App = React.createClass({
         var runButton = document.getElementById("run");
         runButton.firstChild.data = "Stop ◼";
         runButton.className += "running";
+        fetch(`http://localhost:8000/run/${self.state.language}`, {
 
-        fetch(`http://localhost:8000/run/${this.state.language}`, {
             method: 'POST',
             headers: {
                 'Accept': '*/*',
                 'Content-Type': 'application/json',
             },
             body: JSON.stringify({
-                Language: this.state.language,
-                Content: this.state.code
+                Language: self.state.language,
+                Content: self.state.code
             })
         }).then((response) => {
             runButton.firstChild.data = "Run ►";
@@ -129,22 +132,23 @@ var App = React.createClass({
         });
     },
     handleDrag: function(e, position) {
-        console.log(e);
         this.setState({
-            code: this.state.code,
-            stdout: "",
-            stderr: "",
             leftFlex: .5 + position.x / window.innerWidth,
             rightFlex: 1 - (.5 + position.x / window.innerWidth),
-            language: this.state.language
         });
-        console.log("X: " + position.x);
-        console.log("inner width: " + window.innerWidth);
-        console.log("Left flex: " + this.state.leftFlex);
     },
     handleLangChange: function(event) {
+        var _this = this;
+        var lang = event.target.value
         this.setState({
-            language: event.target.value
+            options: {
+                scrollbarStyle: 'null',
+                lineNumbers: true,
+                theme: _this.state.options.theme,
+                mode: lang,
+            },
+            language: lang
+
         });
     },
     sendCode: function() {
@@ -153,7 +157,16 @@ var App = React.createClass({
             Content: this.state.code
         }));
     },
-
+    handleBGChange: function(color){
+        this.setState({
+            background: color.target.value
+        })
+    },
+    handleColorChange: function(color){
+        this.setState({
+            font: color.target.value
+        })
+    },
     handleThemeChange: function(event) {
         this.setState({
             options: {
@@ -163,6 +176,11 @@ var App = React.createClass({
                 mode: this.state.language,
             }
         });
+
+    },
+    showSettings: function(){
+        var sett = document.getElementById('settings-modal');
+        sett.hidden= !sett.hidden;
     },
     componentDidMount: function() {
         var self = this;
@@ -199,60 +217,12 @@ var App = React.createClass({
                 <div className="top-menu">
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
-                        <select className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
-                            <option value="go">Go</option>
+                        <select defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
+                            <option  value="go">Go</option>
                             <option value="python">Python</option>
+                            <option value="haskell">Haskell</option>
                         </select>
-                        <select className="lang-select" onChange={(event) => {this.handleThemeChange(event)}}>
-                            <option>3024-day</option>
-                            <option>3024-night</option>
-                            <option>abcdef</option>
-                            <option>ambiance</option>
-                            <option>base16-dark</option>
-                            <option>base16-light</option>
-                            <option>bespin</option>
-                            <option selected="">default</option><option>blackboard</option>
-                            <option>cobalt</option>
-                            <option>colorforth</option>
-                            <option>dracula</option>
-                            <option>duotone-dark</option>
-                            <option>duotone-light</option>
-                            <option>eclipse</option>
-                            <option>elegant</option>
-                            <option>erlang-dark</option>
-                            <option>hopscotch</option>
-                            <option>icecoder</option>
-                            <option>isotope</option>
-                            <option>lesser-dark</option>
-                            <option>liquibyte</option>
-                            <option>material</option>
-                            <option>mbo</option>
-                            <option>mdn-like</option>
-                            <option>midnight</option>
-                            <option>monokai</option>
-                            <option>neat</option>
-                            <option>neo</option>
-                            <option>night</option>
-                            <option>panda-syntax</option>
-                            <option>paraiso-dark</option>
-                            <option>paraiso-light</option>
-                            <option>pastel-on-dark</option>
-                            <option>railscasts</option>
-                            <option>rubyblue</option>
-                            <option>seti</option>
-                            <option selected="selected">solarized dark</option>
-                            <option>solarized light</option>
-                            <option>the-matrix</option>
-                            <option>tomorrow-night-bright</option>
-                            <option>tomorrow-night-eighties</option>
-                            <option>ttcn</option>
-                            <option>twilight</option>
-                            <option>vibrant-ink</option>
-                            <option>xq-dark</option>
-                            <option>xq-light</option>
-                            <option>yeti</option>
-                            <option>zenburn</option>
-                        </select>
+                        <button className="menu-item" onClick={this.showSettings}>⚙</button>
                     </div>
                     <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
                         <button onClick={this.clear} className="menu-item"> Clear </button>
@@ -277,11 +247,19 @@ var App = React.createClass({
                             <div className="tiny-flex" style={{cursor: 'col-resize'}}></div>
                         </div>
                     </Draggable>
-                    <div className="flex-item code-container" style={{backgroundColor: "#002b36", flex: this.state.rightFlex.toString()}}>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
-                        <pre style={{color: "#FFFFFF", fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
+                    <div id="console" className="flex-item code-container" style={{backgroundColor: this.state.background, flex: this.state.rightFlex.toString()}}>
+                        <pre style={{color: this.state.font, fontFamily: 'Courier New'}}>{this.state.stdout}</pre>
+                        <pre style={{color: this.state.font, fontFamily: 'Courier New'}}>{this.state.stderr}</pre>
                     </div>
                 </div>
+                <Settings
+                    handleThemeChange={this.handleThemeChange}
+                    showSettings={this.showSettings}
+                    handleColorChange={this.handleColorChange}
+                    handleBGChange={this.handleBGChange}
+                    font={this.state.font}
+                    bg={this.state.background}
+                    theme={this.state.options.theme}/>
             </div>
         );
     }
