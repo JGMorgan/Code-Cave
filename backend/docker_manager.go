@@ -29,12 +29,12 @@ func CreateContainer(language string, files []File) {
         args = append(args, "shared_python");
         break;
     case "golang" :
-        fmt.Println("Using golang");
         args = append(args, "shared_golang");
         break;
+    case "haskell" :
+        args = append(args, "shared_haskell");
+        break;
     }
-
-    //fmt.Println(args);
 
     cmd := exec.Command("docker", args...)
     stdout, err := cmd.StdoutPipe()
@@ -59,14 +59,9 @@ func CreateContainer(language string, files []File) {
 
 func main() {
    var files = []File {
-   //print(\"Hello World! I am python!\")
        File {
-           name: "main.py",
-           content: `package main
-import "fmt"
-func main() {
-    fmt.Println("hello world")
-}`,
+           name: "main.hs",
+           content: `main = do putStrLn "Hello World! I am Haskell!"`,
        },
        File {
            name: "lib.py",
@@ -77,5 +72,5 @@ func main() {
            content: "The quick brown fox jumps over the lazy dog",
        },
    }
-   CreateContainer("golang", files)
+   CreateContainer("haskell", files)
 }
