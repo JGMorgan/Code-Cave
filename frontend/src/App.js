@@ -80,7 +80,7 @@ var App = React.createClass({
     updateCode: function(newCode) {
         this.setState({
             code: newCode,
-        });
+        }, () => {this.sendCode()});
     },
     updateStdOut: function(newOut) {
         this.setState({
@@ -94,6 +94,7 @@ var App = React.createClass({
     },
     runCode: function() {
         var self = this;
+        console.log("running "+JSON.stringify(this.state));
         var runButton = document.getElementById("run");
         runButton.firstChild.data = "Stop ◼";
         runButton.className += "running";
@@ -140,16 +141,19 @@ var App = React.createClass({
     handleLangChange: function(event) {
         var _this = this;
         var lang = event.target.value
+        console.log(lang);
         this.setState({
             options: {
                 scrollbarStyle: 'null',
                 lineNumbers: true,
                 theme: _this.state.options.theme,
                 mode: lang,
-            },
-            language: lang
-
+            }
         });
+        this.setState({
+            language: lang
+        }, () => {this.sendCode()});
+
     },
     sendCode: function() {
         ws.send(JSON.stringify({
@@ -194,11 +198,15 @@ var App = React.createClass({
         };
 
         ws.onmessage = (e) => {
+            var message = JSON.parse(e.data);
             self.setState({
-                code: e.data.Content,
-                language: e.data.Language
+                code: message.Content,
+                language: message.Language
+            }, ()=> {
+                console.log(this.state);
+                var ls = document.getElementById('lang-select')
+                ls.value = self.state.language
             });
-            console.log(e.data);
         };
 
         ws.onerror = (e) => {
@@ -217,8 +225,8 @@ var App = React.createClass({
                 <div className="top-menu">
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
-                        <select defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
-                            <option  value="go">Go</option>
+                        <select id="lang-select" defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event)}}>
+                            <option value="go">Go</option>
                             <option value="python">Python</option>
                             <option value="haskell">Haskell</option>
                         </select>
@@ -231,7 +239,7 @@ var App = React.createClass({
                 <div className="flex-container">
                     <div className="flex-item code-container" style={{flex: this.state.leftFlex.toString()}}>
                         <CodeMirror value={this.state.code}
-                        onChange={(event) => {this.updateCode(event);this.sendCode()}}
+                        onChange={(event) => {this.updateCode(event)}}
                         options={this.state.options} />
                     </div>
                     <Draggable
