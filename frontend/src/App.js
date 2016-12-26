@@ -3,6 +3,8 @@ var ReactDOM = require('react-dom');
 var CodeMirror = require('react-codemirror');
 var Draggable = require('react-draggable');
 import Settings  from './Settings';
+var ClipboardButton = require('react-clipboard.js');
+
 
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
@@ -97,7 +99,7 @@ var App = React.createClass({
         console.log("running "+JSON.stringify(this.state));
         var runButton = document.getElementById("run");
         runButton.firstChild.data = "Stop ◼";
-        runButton.className += "running";
+        runButton.className += " running";
         fetch(`http://localhost:8000/run/${self.state.language}`, {
 
             method: 'POST',
@@ -186,6 +188,18 @@ var App = React.createClass({
         var sett = document.getElementById('settings-modal');
         sett.hidden= !sett.hidden;
     },
+    successfulCopy: function(){
+        console.log("IT WORKED");
+        var cpy = document.getElementById('copy-button');
+        cpy.className += " green";
+        cpy.firstChild.data = "Share✅"
+        setTimeout(function(){
+                   cpy.className = cpy.className.replace(/\bgreen\b/,'');
+                   cpy.firstChild.data = "Share"
+
+               }, 1000);
+
+    },
     componentDidMount: function() {
         var self = this;
         ws = new WebSocket('ws://localhost:8000/share');
@@ -234,6 +248,9 @@ var App = React.createClass({
                     </div>
                     <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
                         <button onClick={this.clear} className="menu-item"> Clear </button>
+                        <ClipboardButton button-id="copy-button" onSuccess={this.successfulCopy} className="menu-item" data-clipboard-text={document.location.href}>
+                            Share
+                          </ClipboardButton>
                     </div>
                 </div>
                 <div className="flex-container">
