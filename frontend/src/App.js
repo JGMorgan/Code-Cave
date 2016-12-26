@@ -189,7 +189,6 @@ var App = React.createClass({
         sett.hidden= !sett.hidden;
     },
     successfulCopy: function(){
-        console.log("IT WORKED");
         var cpy = document.getElementById('copy-button');
         cpy.className += " green";
         cpy.firstChild.data = "Share✅"
