@@ -55,7 +55,8 @@ func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
         connection: conn,
         send: make(chan *Code, 1024),
         name: conninfo.Client_name,
-        room_number: conninfo.Room_number}
+        room_number: conninfo.Room_number,
+        room_changed: false}
 	go client.Receive(hub)
     client.Send(hub)
 }
@@ -81,6 +82,7 @@ func (hub *Hub) Run() {
                 _, exists = hub.rooms[client.room_number]
             }
             _, exists = hub.rooms[client.room_number]
+            client.room_changed = true
             if !exists {
                 hub.rooms[client.room_number] = []*Client{client}
             }else{

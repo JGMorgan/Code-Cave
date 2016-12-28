@@ -68,6 +68,7 @@ var App = React.createClass({
             stderr: "",
             leftFlex: .5,
             rightFlex: .5,
+            roomNumber: 0,
             language: "go",
             options : {
                 scrollbarStyle: 'null',
@@ -204,22 +205,34 @@ var App = React.createClass({
         ws = new WebSocket('ws://localhost:8000/share');
 
         ws.onopen = () => {
+            var hashIndex = document.location.href.indexOf('#');
+            var roomNum = 0;
+            if (hashIndex !== -1) {
+                roomNum = parseInt(document.location.href.substring(hashIndex + 1), 10);
+            }
             ws.send(JSON.stringify({
-                Room_number: 1234,
+                Room_number: roomNum,
                 Client_name: "Erlich Bachman"
             }));
         };
 
         ws.onmessage = (e) => {
             var message = JSON.parse(e.data);
-            self.setState({
-                code: message.Content,
-                language: message.Language
-            }, ()=> {
-                console.log(this.state);
-                var ls = document.getElementById('lang-select')
-                ls.value = self.state.language
-            });
+            console.log(message);
+            if ('Room_number' in message) {
+                self.setState({
+                    roomNumber: message.Room_number
+                });
+            }else{
+                self.setState({
+                    code: message.Content,
+                    language: message.Language
+                }, ()=> {
+                    console.log(this.state);
+                    var ls = document.getElementById('lang-select')
+                    ls.value = self.state.language
+                });
+            }
         };
 
         ws.onerror = (e) => {
@@ -247,7 +260,7 @@ var App = React.createClass({
                     </div>
                     <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
                         <button onClick={this.clear} className="menu-item"> Clear </button>
-                        <ClipboardButton button-id="copy-button" onSuccess={this.successfulCopy} className="menu-item" data-clipboard-text={document.location.href}>
+                        <ClipboardButton button-id="copy-button" onSuccess={this.successfulCopy} className="menu-item" data-clipboard-text={document.location.href.includes('#') ? document.location.href : document.location.href+'#'+this.state.roomNumber}>
                             Share
                           </ClipboardButton>
                     </div>

@@ -11,6 +11,7 @@ type Client struct {
     send chan *Code
     room_number uint32
     name string
+    room_changed bool
 }
 
 type OutBoundMessage struct {
@@ -54,6 +55,15 @@ func (c *Client) Receive(hub *Hub) {
 
 func (c *Client) Send(hub *Hub) {
     for {
+        if c.room_changed == true {
+            c.room_changed = false
+            rnmessage, err := json.Marshal(struct {Room_number uint32} {c.room_number})
+            if err != nil {
+                return
+            }
+            c.connection.WriteMessage(websocket.TextMessage, rnmessage)
+        }
+        
 		for i := 0; i < len(c.send); i++ {
             code, ok := <-c.send
             /*
@@ -64,6 +74,7 @@ func (c *Client) Send(hub *Hub) {
     			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
     			return
     		}
+
             log.Println("sending")
             log.Println(code.Content)
             message, err := json.Marshal(code)
