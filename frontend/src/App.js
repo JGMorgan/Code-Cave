@@ -118,8 +118,11 @@ var App = React.createClass({
             return response.json();
         }).then(function(data) {
             console.log(data);
-            self.updateStdOut(data.Output)
-            self.updateStdErr(data.Error)
+            ws.send(JSON.stringify({
+                Language: data.Language,
+                Output: data.Output,
+                Error: data.Error,
+            }));
             runButton.firstChild.data = "Run ►";
             runButton.className = runButton.className.replace(/\brunning\b/,'');
         }).catch(function(){
@@ -223,7 +226,8 @@ var App = React.createClass({
                 self.setState({
                     roomNumber: message.Room_number
                 });
-            }else{
+            }else if ('Content' in message){
+                console.log(message.Content + "  content");
                 self.setState({
                     code: message.Content,
                     language: message.Language
@@ -232,6 +236,9 @@ var App = React.createClass({
                     var ls = document.getElementById('lang-select')
                     ls.value = self.state.language
                 });
+            }else{
+                self.updateStdOut(message.Output);
+                self.updateStdErr(message.Error);
             }
         };
 

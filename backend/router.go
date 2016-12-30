@@ -12,17 +12,6 @@ import (
     "os"
 )
 
-type Code struct {
-    Language string
-    Content string
-}
-
-type STDOut struct {
-    Language string
-    Output string
-    Error string
-}
-
 func handleCors(w http.ResponseWriter) {
     w.Header().Set("Access-Control-Allow-Origin", "*")
     w.Header().Set("Access-Control-Allow-Methods", "POST, GET")

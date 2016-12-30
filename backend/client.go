@@ -3,20 +3,27 @@ package main
 import (
     "github.com/gorilla/websocket"
     "encoding/json"
-    "log"
+    //"log"
 )
 
 type Client struct {
     connection *websocket.Conn
     send chan *Code
+    out chan *STDOut
     room_number uint32
     name string
     room_changed bool
 }
 
-type OutBoundMessage struct {
-    room_number uint32
-    code *Code
+func newClient(conn *websocket.Conn, client_name string, room_number uint32) *Client {
+    client := &Client{
+        connection: conn,
+        send: make(chan *Code, 1024),
+        out: make(chan *STDOut, 512),
+        name: client_name,
+        room_number: room_number,
+        room_changed: false}
+    return client
 }
 
 func (c *Client) Receive(hub *Hub) {
@@ -25,6 +32,7 @@ func (c *Client) Receive(hub *Hub) {
 		c.connection.Close()
 	}()
     var code Code
+    var out STDOut
     var conninfo ConnectionInfo
 	for {
 		_, message, err := c.connection.ReadMessage()
@@ -35,7 +43,11 @@ func (c *Client) Receive(hub *Hub) {
         if err != nil {
 			break
 		}
-        if code.Content == "" && code.Language == "" {
+        err = json.Unmarshal(message, &out)
+        if err != nil {
+			break
+		}
+        if out.Language == "" && code.Language == "" {
             err = json.Unmarshal(message, &conninfo)
             if err != nil {
     			break
@@ -43,12 +55,18 @@ func (c *Client) Receive(hub *Hub) {
             c.room_number = conninfo.Room_number
             c.name = conninfo.Client_name
             hub.register <- c
-        }else{
+        }else if out.Output == "" && out.Error == ""{
             outmessage := &OutBoundMessage{
                 room_number: c.room_number,
                 code: &code,
             }
             hub.messages <- outmessage
+        }else{
+            output := &OutBoundOutput{
+                room_number: c.room_number,
+                output: &out,
+            }
+            hub.outputs <- output
         }
 	}
 }
@@ -63,7 +81,7 @@ func (c *Client) Send(hub *Hub) {
             }
             c.connection.WriteMessage(websocket.TextMessage, rnmessage)
         }
-        
+
 		for i := 0; i < len(c.send); i++ {
             code, ok := <-c.send
             /*
@@ -74,10 +92,19 @@ func (c *Client) Send(hub *Hub) {
     			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
     			return
     		}
-
-            log.Println("sending")
-            log.Println(code.Content)
             message, err := json.Marshal(code)
+            if err != nil {
+    			return
+    		}
+			c.connection.WriteMessage(websocket.TextMessage, message)
+		}
+        for i := 0; i < len(c.out); i++ {
+            out, ok := <-c.out
+            if !ok {
+    			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
+    			return
+    		}
+            message, err := json.Marshal(out)
             if err != nil {
     			return
     		}
