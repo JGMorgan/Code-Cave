@@ -1,8 +1,8 @@
 package main
 
 import (
-	//"io"
-	"net/http"
+    //"io"
+    "net/http"
     "log"
     "os/exec"
     "encoding/json"
@@ -28,40 +28,40 @@ func runPython(w http.ResponseWriter, r *http.Request) {
     var code Code
 
     buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
+    buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &code)
 
     f, err := os.Create("./test.py")
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     _, err = f.WriteString(code.Content)
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     f.Sync()
     f.Close()
 
     cmd := exec.Command("python", "test.py")
-	stdout, err := cmd.StdoutPipe()
+    stdout, err := cmd.StdoutPipe()
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
     stderr, err := cmd.StderrPipe()
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
     err = cmd.Start();
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     stdoutbuf := new(bytes.Buffer)
-	stdoutbuf.ReadFrom(stdout)
+    stdoutbuf.ReadFrom(stdout)
     stderrbuf := new(bytes.Buffer)
-	stderrbuf.ReadFrom(stderr)
+    stderrbuf.ReadFrom(stderr)
     out := STDOut{Language: "Python",
         Output: stdoutbuf.String(),
         Error: stderrbuf.String()}
@@ -77,40 +77,40 @@ func runGo(w http.ResponseWriter, r *http.Request) {
     var code Code
 
     buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
+    buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &code)
 
     f, err := os.Create("./test.go")
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     _, err = f.WriteString(code.Content)
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     f.Sync()
     f.Close()
 
     cmd := exec.Command("go", "run", "test.go")
-	stdout, err := cmd.StdoutPipe()
+    stdout, err := cmd.StdoutPipe()
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
     stderr, err := cmd.StderrPipe()
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
     err = cmd.Start();
     if err != nil {
-		log.Fatal(err)
-	}
+        log.Fatal(err)
+    }
 
     stdoutbuf := new(bytes.Buffer)
-	stdoutbuf.ReadFrom(stdout)
+    stdoutbuf.ReadFrom(stdout)
     stderrbuf := new(bytes.Buffer)
-	stderrbuf.ReadFrom(stderr)
+    stderrbuf.ReadFrom(stderr)
     out := STDOut{Language: "Go",
         Output: stdoutbuf.String(),
         Error: stderrbuf.String()}
@@ -121,12 +121,12 @@ func runGo(w http.ResponseWriter, r *http.Request) {
 func main() {
     hub := NewHub()
     go hub.Run()
-	http.HandleFunc("/run/go", runGo)
+    http.HandleFunc("/run/go", runGo)
     http.HandleFunc("/run/python", runPython)
     http.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
         HandleCodeShare(hub, w, r)
     })
-	err := http.ListenAndServe(":8000", nil)
+    err := http.ListenAndServe(":8000", nil)
     if err != nil {
         log.Println(err)
     }

@@ -27,31 +27,31 @@ func newClient(conn *websocket.Conn, client_name string, room_number uint32) *Cl
 }
 
 func (c *Client) Receive(hub *Hub) {
-	defer func() {
+    defer func() {
         hub.unregister <- c
-		c.connection.Close()
-	}()
+        c.connection.Close()
+    }()
     var code Code
     var out STDOut
     var conninfo ConnectionInfo
-	for {
-		_, message, err := c.connection.ReadMessage()
-		if err != nil {
-			break
-		}
+    for {
+        _, message, err := c.connection.ReadMessage()
+        if err != nil {
+            break
+        }
         err = json.Unmarshal(message, &code)
         if err != nil {
-			break
-		}
+            break
+        }
         err = json.Unmarshal(message, &out)
         if err != nil {
-			break
-		}
+            break
+        }
         if out.Language == "" && code.Language == "" {
             err = json.Unmarshal(message, &conninfo)
             if err != nil {
-    			break
-    		}
+                break
+            }
             c.room_number = conninfo.Room_number
             c.name = conninfo.Client_name
             hub.register <- c
@@ -68,7 +68,7 @@ func (c *Client) Receive(hub *Hub) {
             }
             hub.outputs <- output
         }
-	}
+    }
 }
 
 func (c *Client) Send(hub *Hub) {
@@ -82,33 +82,33 @@ func (c *Client) Send(hub *Hub) {
             c.connection.WriteMessage(websocket.TextMessage, rnmessage)
         }
 
-		for i := 0; i < len(c.send); i++ {
+        for i := 0; i < len(c.send); i++ {
             code, ok := <-c.send
             /*
             if ok == false then the channel has been closed so the client
             is no longer active
             */
             if !ok {
-    			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
-    			return
-    		}
+                c.connection.WriteMessage(websocket.CloseMessage, []byte{})
+                return
+            }
             message, err := json.Marshal(code)
             if err != nil {
-    			return
-    		}
-			c.connection.WriteMessage(websocket.TextMessage, message)
-		}
+                return
+            }
+            c.connection.WriteMessage(websocket.TextMessage, message)
+        }
         for i := 0; i < len(c.out); i++ {
             out, ok := <-c.out
             if !ok {
-    			c.connection.WriteMessage(websocket.CloseMessage, []byte{})
-    			return
-    		}
+                c.connection.WriteMessage(websocket.CloseMessage, []byte{})
+                return
+            }
             message, err := json.Marshal(out)
             if err != nil {
-    			return
-    		}
-			c.connection.WriteMessage(websocket.TextMessage, message)
-		}
-	}
+                return
+            }
+            c.connection.WriteMessage(websocket.TextMessage, message)
+        }
+    }
 }
