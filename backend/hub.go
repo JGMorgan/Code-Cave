@@ -22,8 +22,8 @@ type Hub struct {
     channel to free up the code channel
     */
     outputs chan *OutBoundOutput
-	register chan *Client
-	unregister chan *Client
+    register chan *Client
+    unregister chan *Client
 }
 
 var upgrader = websocket.Upgrader {
@@ -34,12 +34,12 @@ var upgrader = websocket.Upgrader {
 
 func NewHub() *Hub {
     return &Hub{
-		rooms:  make(map[uint32][]*Client),
+        rooms:  make(map[uint32][]*Client),
         messages: make(chan *OutBoundMessage),
         outputs: make(chan *OutBoundOutput),
         register: make(chan *Client),
         unregister: make(chan *Client),
-	}
+    }
 }
 
 func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
@@ -50,16 +50,16 @@ func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
     }
     var conninfo ConnectionInfo
     buf := new(bytes.Buffer)
-	buf.ReadFrom(r.Body)
+    buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &conninfo)
     client := newClient(conn, conninfo.Client_name, conninfo.Room_number)
-	go client.Receive(hub)
+    go client.Receive(hub)
     client.Send(hub)
 }
 
 func (hub *Hub) Run() {
     for {
-		select {
+        select {
         case message := <-hub.messages:
             log.Println("message")
             for i, _ := range hub.rooms[message.room_number] {
@@ -70,7 +70,7 @@ func (hub *Hub) Run() {
             for i, _ := range hub.rooms[output.room_number] {
                 hub.rooms[output.room_number][i].out <- output.output
             }
-		case client := <-hub.register:
+        case client := <-hub.register:
             log.Println("register")
             /*
             exists defaults to false because if a room number is specified then
@@ -89,10 +89,10 @@ func (hub *Hub) Run() {
             }else{
                 hub.rooms[client.room_number] = append(hub.rooms[client.room_number], client)
             }
-		case client := <-hub.unregister:
+        case client := <-hub.unregister:
             log.Println("unregister")
             clients, ok := hub.rooms[client.room_number];
-			if ok {
+            if ok {
                 //if there is nobody in that room, then we close the room
                 if len(clients) == 0 {
                     delete(hub.rooms, client.room_number)
@@ -104,8 +104,8 @@ func (hub *Hub) Run() {
                         }
                     }
                 }
-				close(client.send)
-			}
+                close(client.send)
+            }
         }
-	}
+    }
 }
