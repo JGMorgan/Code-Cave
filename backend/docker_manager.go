@@ -12,7 +12,7 @@ type File struct {
     name, content string;
 }
 
-func CreateContainer(language string, files []File) {
+func CreateContainer(language string, files []File) string {
     var args = []string{"run"}
 
     args = append(args, "-e", "NUM_FILES="+ strconv.Itoa(len(files)));
@@ -52,9 +52,12 @@ func CreateContainer(language string, files []File) {
 
     stdoutbuf := new(bytes.Buffer)
     stdoutbuf.ReadFrom(stdout)
-    fmt.Println(stdoutbuf)
+    fmt.Println(stdoutbuf);
+
     stderrbuf := new(bytes.Buffer)
     stderrbuf.ReadFrom(stderr)
+
+    return stdoutbuf.String();
 }
 
 func main() {
