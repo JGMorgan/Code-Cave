@@ -3,6 +3,8 @@ var ReactDOM = require('react-dom');
 var CodeMirror = require('react-codemirror');
 var Draggable = require('react-draggable');
 import Settings  from './Settings';
+var ClipboardButton = require('react-clipboard.js');
+
 
 require('codemirror/lib/codemirror.css');
 require('codemirror/mode/go/go');
@@ -66,6 +68,7 @@ var App = React.createClass({
             stderr: "",
             leftFlex: .5,
             rightFlex: .5,
+            roomNumber: 0,
             language: "go",
             options : {
                 scrollbarStyle: 'null',
@@ -79,8 +82,8 @@ var App = React.createClass({
     },
     updateCode: function(newCode) {
         this.setState({
-            code: newCode
-        });
+            code: newCode,
+        }, () => {this.sendCode()});
     },
     updateStdOut: function(newOut) {
         this.setState({
@@ -94,9 +97,10 @@ var App = React.createClass({
     },
     runCode: function() {
         var self = this;
+        console.log("running "+JSON.stringify(this.state));
         var runButton = document.getElementById("run");
         runButton.firstChild.data = "Stop ◼";
-        runButton.className += "running";
+        runButton.className += " running";
         fetch(`http://localhost:8000/run/${self.state.language}`, {
 
             method: 'POST',
@@ -114,8 +118,11 @@ var App = React.createClass({
             return response.json();
         }).then(function(data) {
             console.log(data);
-            self.updateStdOut(data.Output)
-            self.updateStdErr(data.Error)
+            ws.send(JSON.stringify({
+                Language: data.Language,
+                Output: data.Output,
+                Error: data.Error,
+            }));
             runButton.firstChild.data = "Run ►";
             runButton.className = runButton.className.replace(/\brunning\b/,'');
         }).catch(function(){
@@ -140,16 +147,19 @@ var App = React.createClass({
     handleLangChange: function(event) {
         var _this = this;
         var lang = event.target.value
+        console.log(lang);
         this.setState({
             options: {
                 scrollbarStyle: 'null',
                 lineNumbers: true,
                 theme: _this.state.options.theme,
                 mode: lang,
-            },
-            language: lang
-
+            }
         });
+        this.setState({
+            language: lang
+        }, () => {this.sendCode()});
+
     },
     sendCode: function() {
         ws.send(JSON.stringify({
@@ -182,22 +192,54 @@ var App = React.createClass({
         var sett = document.getElementById('settings-modal');
         sett.hidden= !sett.hidden;
     },
+    successfulCopy: function(){
+        var cpy = document.getElementById('copy-button');
+        cpy.className += " green";
+        cpy.firstChild.data = "Share✅"
+        setTimeout(function(){
+                   cpy.className = cpy.className.replace(/\bgreen\b/,'');
+                   cpy.firstChild.data = "Share"
+
+               }, 1000);
+
+    },
     componentDidMount: function() {
+        var self = this;
         ws = new WebSocket('ws://localhost:8000/share');
 
         ws.onopen = () => {
+            var hashIndex = document.location.href.indexOf('#');
+            var roomNum = 0;
+            if (hashIndex !== -1) {
+                roomNum = parseInt(document.location.href.substring(hashIndex + 1), 10);
+            }
             ws.send(JSON.stringify({
-                room_number: 1234,
-                client_name: "Erlich Bachman"
+                Room_number: roomNum,
+                Client_name: "Erlich Bachman"
             }));
         };
 
         ws.onmessage = (e) => {
-            // this.setState({
-            //     code: e.data.Content,
-            //     language: e.data.Language
-            // });
-            console.log(e.data);
+            var message = JSON.parse(e.data);
+            console.log(message);
+            if ('Room_number' in message) {
+                self.setState({
+                    roomNumber: message.Room_number
+                });
+            }else if ('Content' in message){
+                console.log(message.Content + "  content");
+                self.setState({
+                    code: message.Content,
+                    language: message.Language
+                }, ()=> {
+                    console.log(this.state);
+                    var ls = document.getElementById('lang-select')
+                    ls.value = self.state.language
+                });
+            }else{
+                self.updateStdOut(message.Output);
+                self.updateStdErr(message.Error);
+            }
         };
 
         ws.onerror = (e) => {
@@ -216,8 +258,8 @@ var App = React.createClass({
                 <div className="top-menu">
                     <div className="flex-item" style={{flex: this.state.leftFlex.toString()}}>
                         <button id="run" onClick={this.runCode} className="menu-item run-button "> Run &#9658; </button>
-                        <select defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event);this.sendCode()}}>
-                            <option  value="go">Go</option>
+                        <select id="lang-select" defaultValue={this.state.language} className="lang-select" onChange={(event) => {this.handleLangChange(event)}}>
+                            <option value="go">Go</option>
                             <option value="python">Python</option>
                             <option value="haskell">Haskell</option>
                         </select>
@@ -225,12 +267,15 @@ var App = React.createClass({
                     </div>
                     <div className="flex-item" style={{flex: this.state.rightFlex.toString()}}>
                         <button onClick={this.clear} className="menu-item"> Clear </button>
+                        <ClipboardButton button-id="copy-button" onSuccess={this.successfulCopy} className="menu-item" data-clipboard-text={document.location.href.includes('#') ? document.location.href : document.location.href+'#'+this.state.roomNumber}>
+                            Share
+                          </ClipboardButton>
                     </div>
                 </div>
                 <div className="flex-container">
                     <div className="flex-item code-container" style={{flex: this.state.leftFlex.toString()}}>
                         <CodeMirror value={this.state.code}
-                        onChange={(event) => {this.updateCode(event);this.sendCode()}}
+                        onChange={(event) => {this.updateCode(event)}}
                         options={this.state.options} />
                     </div>
                     <Draggable

@@ -100,7 +100,7 @@ label {
 	top:1px;
 }
 
-.run-button {
+.run-button, .green {
 	background-color: green;
 }
 

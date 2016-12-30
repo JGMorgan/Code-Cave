@@ -17,13 +17,13 @@ type Hub struct {
     if a client needs to be added to removed this will be handled using channels
     */
     messages chan *OutBoundMessage
+    /*
+    Stdout only needs to be sent when the code is ran so it is on it's own
+    channel to free up the code channel
+    */
+    outputs chan *OutBoundOutput
 	register chan *Client
 	unregister chan *Client
-}
-
-type ConnectionInfo struct {
-    room_number uint32
-    client_name string
 }
 
 var upgrader = websocket.Upgrader {
@@ -32,10 +32,11 @@ var upgrader = websocket.Upgrader {
     CheckOrigin: func(r *http.Request) bool { return true },
 }
 
-func NewHub() *Hub{
+func NewHub() *Hub {
     return &Hub{
 		rooms:  make(map[uint32][]*Client),
         messages: make(chan *OutBoundMessage),
+        outputs: make(chan *OutBoundOutput),
         register: make(chan *Client),
         unregister: make(chan *Client),
 	}
@@ -51,12 +52,7 @@ func HandleCodeShare(hub *Hub, w http.ResponseWriter, r *http.Request) {
     buf := new(bytes.Buffer)
 	buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &conninfo)
-    client := &Client{
-        connection: conn,
-        send: make(chan *Code, 1024),
-        name: conninfo.client_name,
-        room_number: conninfo.room_number}
-    hub.register <- client
+    client := newClient(conn, conninfo.Client_name, conninfo.Room_number)
 	go client.Receive(hub)
     client.Send(hub)
 }
@@ -68,6 +64,11 @@ func (hub *Hub) Run() {
             log.Println("message")
             for i, _ := range hub.rooms[message.room_number] {
                 hub.rooms[message.room_number][i].send <- message.code
+            }
+        case output := <-hub.outputs:
+            log.Println("output")
+            for i, _ := range hub.rooms[output.room_number] {
+                hub.rooms[output.room_number][i].out <- output.output
             }
 		case client := <-hub.register:
             log.Println("register")
@@ -82,6 +83,7 @@ func (hub *Hub) Run() {
                 _, exists = hub.rooms[client.room_number]
             }
             _, exists = hub.rooms[client.room_number]
+            client.room_changed = true
             if !exists {
                 hub.rooms[client.room_number] = []*Client{client}
             }else{
