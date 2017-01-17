@@ -4,12 +4,16 @@ import (
     "log"
     "bytes"
     "os/exec"
-    "fmt"
+    //"fmt"
     "strconv"
 )
 
 type File struct {
     name, content string;
+}
+
+func NewFile(name string, content string) *File {
+    return &File{name: name, content: content}
 }
 
 func CreateContainer(language string, files []File) string {
@@ -52,19 +56,20 @@ func CreateContainer(language string, files []File) string {
 
     stdoutbuf := new(bytes.Buffer)
     stdoutbuf.ReadFrom(stdout)
-    fmt.Println(stdoutbuf);
+    //fmt.Println(stdoutbuf);
 
     stderrbuf := new(bytes.Buffer)
     stderrbuf.ReadFrom(stderr)
+    //fmt.Println(stderrbuf)
 
     return stdoutbuf.String();
 }
 
-func main() {
+func test() {
    var files = []File {
        File {
-           name: "main.hs",
-           content: `main = do putStrLn "Hello World! I am Haskell!"`,
+           name: "main.py",
+           content: `print("123")`,
        },
        File {
            name: "lib.py",
@@ -75,5 +80,5 @@ func main() {
            content: "The quick brown fox jumps over the lazy dog",
        },
    }
-   CreateContainer("haskell", files)
+   CreateContainer("python", files)
 }

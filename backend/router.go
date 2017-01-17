@@ -79,7 +79,6 @@ func runGo(w http.ResponseWriter, r *http.Request) {
     buf := new(bytes.Buffer)
     buf.ReadFrom(r.Body)
     json.Unmarshal(buf.Bytes(), &code)
-
     f, err := os.Create("./test.go")
     if err != nil {
         log.Fatal(err)
@@ -118,11 +117,40 @@ func runGo(w http.ResponseWriter, r *http.Request) {
     w.Write(b)
 }
 
+func runPythonDocker(w http.ResponseWriter, r *http.Request) {
+    handleCors(w);
+
+    var code Code
+
+    buf := new(bytes.Buffer)
+    buf.ReadFrom(r.Body)
+    json.Unmarshal(buf.Bytes(), &code)
+
+    files := []File {
+        File {
+            name: "main.py",
+            content: code.Content,
+        },
+    }
+
+    out := STDOut{Language: "Python",
+        Output: CreateContainer("python", files),
+        Error: ""}
+    b, err := json.Marshal(out);
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    w.Write(b)
+}
+
 func main() {
     hub := NewHub()
     go hub.Run()
     http.HandleFunc("/run/go", runGo)
     http.HandleFunc("/run/python", runPython)
+    http.HandleFunc("/docker/run/python", runPythonDocker)
     http.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
         HandleCodeShare(hub, w, r)
     })
