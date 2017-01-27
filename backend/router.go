@@ -145,12 +145,71 @@ func runPythonDocker(w http.ResponseWriter, r *http.Request) {
     w.Write(b)
 }
 
+func runHaskellDocker(w http.ResponseWriter, r *http.Request) {
+    handleCors(w);
+
+    var code Code
+
+    buf := new(bytes.Buffer)
+    buf.ReadFrom(r.Body)
+    json.Unmarshal(buf.Bytes(), &code)
+
+    files := []File {
+        File {
+            name: "main.hs",
+            content: code.Content,
+        },
+    }
+
+    out := STDOut{Language: "Haskell",
+        Output: CreateContainer("haskell", files),
+        Error: ""}
+    b, err := json.Marshal(out);
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    w.Write(b)
+}
+
+func runGoDocker(w http.ResponseWriter, r *http.Request) {
+    handleCors(w);
+
+    var code Code
+
+    buf := new(bytes.Buffer)
+    buf.ReadFrom(r.Body)
+    json.Unmarshal(buf.Bytes(), &code)
+
+    files := []File {
+        File {
+            name: "main.go",
+            content: code.Content,
+        },
+    }
+
+    out := STDOut{Language: "Golang",
+        Output: CreateContainer("golang", files),
+        Error: ""}
+    b, err := json.Marshal(out);
+
+    if err != nil {
+        log.Fatal(err)
+    }
+
+    w.Write(b)
+}
+
+
 func main() {
     hub := NewHub()
     go hub.Run()
     http.HandleFunc("/run/go", runGo)
     http.HandleFunc("/run/python", runPython)
     http.HandleFunc("/docker/run/python", runPythonDocker)
+    http.HandleFunc("/docker/run/go", runGoDocker)
+    http.HandleFunc("/docker/run/haskell", runHaskellDocker)
     http.HandleFunc("/share", func(w http.ResponseWriter, r *http.Request) {
         HandleCodeShare(hub, w, r)
     })
